@@ -199,7 +199,7 @@ Vector3d JF12Field::getRegularField(const Vector3d& pos) const {
 
 	double d = pos.getR(); // distance to galactic center
 
-	if (d < 20 * kpc) {
+	//if (d < 20 * kpc) {
 		double r = sqrt(pos.x * pos.x + pos.y * pos.y); // in-plane radius
 		double phi = pos.getPhi(); // azimuth
 		double sinPhi = sin(phi);
@@ -208,7 +208,7 @@ Vector3d JF12Field::getRegularField(const Vector3d& pos) const {
 		b += getDiskField(r, pos.z, phi, sinPhi, cosPhi);
 		b += getToroidalHaloField(r, pos.z, sinPhi, cosPhi);
 		b += getXField(r, pos.z, sinPhi, cosPhi);
-	}
+	//}
 
 	return b;
 }

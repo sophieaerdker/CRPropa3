@@ -8,7 +8,7 @@ namespace crpropa {
 JF12FieldSolenoidal::JF12FieldSolenoidal(double delta, double zs) {
 	zS = zs; // set scale heigth for the parabolic X field lines
 	r1 = 5 * kpc; // inner boundary of the disk field
-	r2 = 20 * kpc; // outer boudary of the disk field
+	r2 = 600 * kpc; // outer boudary of the disk field (Sophie: modified, so that JF12 is extended for r > 20kpc)
 	r1s = r1 + delta; // the magnetic flux of the spirals is redirected for r in [r1,r1s]
 	r2s = r2 - delta; // same here at outer boundary between r2s and r2
 	phi0 = 0.; // somewhat arbitrary choice, has to be chosen in [-pi,pi]
