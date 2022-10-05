@@ -46,6 +46,62 @@ std::string UniformAdvectionField::getDescription() const {
 
 //----------------------------------------------------------------
 
+OneDimensionalAdvectionShock::OneDimensionalAdvectionShock(double r_comp, double v_up, double x_sh){
+
+	setComp(r_comp);
+	setVup(v_up);
+	setShockwidth(x_sh);
+	}
+
+Vector3d OneDimensionalAdvectionShock::getField(const Vector3d &position) const {
+
+	double x = position.x;
+	double v_down = v_up/r_comp;
+
+	double a = (v_up + v_down)*0.5;
+	double b = (v_up - v_down)*0.5;
+
+	Vector3d v(0.);
+    v.x = a - b*tanh(x/x_sh);
+
+	return v;
+	}
+
+double OneDimensionalAdvectionShock::getDivergence(const Vector3d &position) const {
+
+	double x = position.x;
+	double v_down = v_up/r_comp;
+
+	double a = (v_up + v_down)*0.5;
+	double b = (v_up - v_down)*0.5;
+
+	return -b/x_sh*(1 - tanh(x/x_sh)*tanh(x/x_sh));
+	}
+
+void OneDimensionalAdvectionShock::setComp(double r) {
+	r_comp = r;
+	return;
+}
+
+void OneDimensionalAdvectionShock::setVup(double v) {
+	v_up = v;
+	return;
+}
+void OneDimensionalAdvectionShock::setShockwidth(double w) {
+	x_sh = w;
+	return;
+}
+
+std::string OneDimensionalAdvectionShock::getDescription() const {
+	std::stringstream s;
+	s << "Shock width: " << x_sh / km  << " km, ";
+	s << "Vup: " << v_up / km * sec << " km/s, ";
+	s << "Comp: " << r_comp;
+	
+	return s.str();
+}
+//----------------------------------------------------------------
+
 ConstantSphericalAdvectionField::ConstantSphericalAdvectionField(const Vector3d origin, double vWind) {
 	setOrigin(origin);
 	setVWind(vWind);

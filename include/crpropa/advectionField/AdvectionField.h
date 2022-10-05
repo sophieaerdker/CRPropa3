@@ -56,6 +56,31 @@ public:
 	std::string getDescription() const;
 };
 
+/**
+ @class 1DAdvectionShock
+ @brief Advection field in x-direction with shock at x = 0 and width x_sh approximated by tanh() 
+		with variable compression ratio r_comp = v_up/v_down
+ */
+class OneDimensionalAdvectionShock: public AdvectionField {
+	double r_comp; //compression ratio of shock
+	double v_up; //upstream velocity 
+	double x_sh; //shock width
+public:/** Constructor
+	@param r_comp //compression ratio of shock
+	@param v_up //upstream velocity 
+	@param x_sh //shock width
+*/
+	OneDimensionalAdvectionShock(double r_comp, double v_up, double x_sh);
+	Vector3d getField(const Vector3d &position) const;
+	double getDivergence(const Vector3d &position) const;
+
+	void setComp(double r_comp);
+	void setVup(double v_up);
+	void setShockwidth(double x_sh);
+
+
+	std::string getDescription() const;
+};
 
 /**
 @class ConstantSphericalAdvectionField
