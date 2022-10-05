@@ -253,7 +253,7 @@ void DiffusionSDE::tryStep(const Vector3d &PosIn, Vector3d &POut, Vector3d &PosE
 
 void DiffusionSDE::driftStep(const Vector3d &pos, Vector3d &linProp, double h) const {
 	Vector3d advField = getAdvectionFieldAtPosition(pos);
-	Vector3d DivadvField = advectionField->getDivergence(pos);
+	double DivadvField = advectionField->getDivergence(pos);
 	// Sophie: calculate divkappa depending on the advection Field and use x coordinate only:
 	// Future: provide diffusionCoefficient module that specifies kappa and its derivatives
 	Vector3d D_DifCoeff = scale * 2 * advField * DivadvField; 
