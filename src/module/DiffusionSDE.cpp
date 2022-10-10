@@ -263,7 +263,7 @@ void DiffusionSDE::driftStep(const Vector3d &pos, Vector3d &linProp, double h) c
 
 void DiffusionSDE::calculateBTensor(double r, double BTen[], Vector3d pos, Vector3d dir, double z) const {
 
-    double DifCoeff = scale * 6.1e24 * pow((std::abs(r) / 4.0e9), alpha);
+    double DifCoeff = scale * 6.1e24 * pow((std::abs(r) / 4.0e9), alpha); // * 6.1e24
 	// Sophie: Diffusion coefficient changes with advection Field, scale now says how advection Field and Diffusion Coefficient 
 	// are related (for now in 1D) + not energy dependent in Toptyghin solution:
 	Vector3d advField = getAdvectionFieldAtPosition(pos);
