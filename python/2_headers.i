@@ -552,6 +552,7 @@ using namespace crpropa;   // for usage of namespace in header files, necessary
 %include "crpropa/module/PhotonOutput1D.h"
 %include "crpropa/module/NuclearDecay.h"
 %include "crpropa/module/ElectronPairProduction.h"
+%include "crpropa/module/ParticleSplitting.h"
 %include "crpropa/module/PhotoPionProduction.h"
 %include "crpropa/module/PhotoDisintegration.h"
 %include "crpropa/module/ElasticScattering.h"

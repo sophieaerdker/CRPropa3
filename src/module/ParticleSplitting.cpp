@@ -22,24 +22,19 @@ void ParticleSplittingModule::process(Candidate *c) const {
 		// current energy is smaller than first bin -> no splitting
 		return;
 	}
-	// in case previous energy is already in maxenergy bin, no splitting:
-	for (size_t i = 1; i < Ebins.size()-1; ++i){
+	for (size_t i = 0; i < Ebins.size(); ++i){
 		
 		if( prevE < Ebins[i] ){
 			// previous energy is in energy bin [i-1, i]
 			if(currE < Ebins[i]){
 				//assuming that dE greater than 0, prevE and E in same energy bin -> no splitting
-				//std::cout << "SAME BIN prevE: " << prevE << " , prev Ebin: " << Ebins[i] << " , currE: " << currE << " , curr Ebin: " << Ebins[i+1] << std::endl;
 				return;
 			}
 
-			//std::cout << "BIN CROSSING prevE: " << prevE << " , prev Ebin: " << Ebins[i] << " , currE: " << currE << " , curr Ebin: " << Ebins[i+1] << std::endl;
 			// current energy is in energy bin [i,i+1] or higher -> particle splitting for each crossing
-
-			for (size_t j = i; j < Ebins.size()-1; ++j ){
+			for (size_t j = i; j < Ebins.size(); ++j ){
 
 				// adapted from Acceleration Module:
-			
 				c->updateWeight(1. / n_split); // * 1/n_split
 
 				for (int i = 1; i < n_split; i++) {
@@ -53,11 +48,15 @@ void ParticleSplittingModule::process(Candidate *c) const {
 					//std::cout<< "new serial number" << snr << std::endl;
 				}
 
-				if (currE < Ebins[j+1]){
+
+				if (j < Ebins.size()-1 && currE < Ebins[j+1]){
 					// candidate is in energy bin [j, j+1] -> no further splitting
 					return;
 				}
-			}	
+			}
+
+			return;
+
 		}
 	}
 }
@@ -81,6 +80,8 @@ void ParticleSplittingModule::setEnergyBins(double Emin, double Emax, double n_b
 			Ebins.push_back(Emin + i * dE);
 		}
 	}
+
+	std::cout << Ebins[0] << Ebins[n_bins-1] << std::endl;
 }
 
 void ParticleSplittingModule::setNsplit(int n) {
