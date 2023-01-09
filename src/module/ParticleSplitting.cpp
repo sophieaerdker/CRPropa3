@@ -2,6 +2,11 @@
 
 namespace crpropa {
 
+ParticleSplittingModule::ParticleSplittingModule() {
+	// no particle splitting if EnergyBins and NSplit are not specified
+	setNsplit(0);
+}
+
 ParticleSplittingModule::ParticleSplittingModule(int n_split, double Emin, double Emax, double n_bins) {
 	setNsplit(n_split);
 	setEnergyBins(Emin, Emax, n_bins, false);
@@ -12,14 +17,31 @@ ParticleSplittingModule::ParticleSplittingModule(int n_split, double Emin, doubl
 	setEnergyBins(Emin, Emax, n_bins, log);
 }
 
+ParticleSplittingModule::ParticleSplittingModule(int SpectralIndex, double Emin, int factor)  {
+	// for use with Diffusive Shock Acceleration
+
+	if (SpectralIndex < 0){
+		throw std::runtime_error(
+				"ParticleSplitting: spectralIndex < 0 !");
+	}
+
+	double Emax = Emin*pow(10, factor); 
+	int n_bins = factor + 1;
+	setEnergyBins(Emin, Emax, n_bins, true);
+	// to compensate for loss of particles per energy bin:
+	setNsplit((int) pow(10, SpectralIndex-1)); 
+
+}
+
 
 void ParticleSplittingModule::process(Candidate *c) const {
 
 	double currE = c->current.getEnergy(); 
 	double prevE = c->previous.getEnergy();
 
-	if (currE < Ebins[0]){
+	if (currE < Ebins[0] || n_split == 0){
 		// current energy is smaller than first bin -> no splitting
+		// or, number of splits = 0
 		return;
 	}
 	for (size_t i = 0; i < Ebins.size(); ++i){
