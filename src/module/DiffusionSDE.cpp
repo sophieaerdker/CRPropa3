@@ -260,6 +260,7 @@ void DiffusionSDE::driftStep(const Vector3d &pos, Vector3d &linProp, double h) c
 void DiffusionSDE::calculateBTensor(double r, double BTen[], Vector3d pos, Vector3d dir, double z) const {
 
     double DifCoeff = scale * 6.1e24 * pow((std::abs(r) / 4.0e9), alpha);
+	DifCoeff = scale; // overwrite for easy use in testing DSA
     BTen[0] = pow( 2  * DifCoeff, 0.5);
     BTen[4] = pow(2 * epsilon * DifCoeff, 0.5);
     BTen[8] = pow(2 * epsilon * DifCoeff, 0.5);
