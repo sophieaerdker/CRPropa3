@@ -42,6 +42,7 @@ void ParticleSplittingModule::process(Candidate *c) const {
 	if (currE < Ebins[0] || n_split == 0){
 		// current energy is smaller than first bin -> no splitting
 		// or, number of splits = 0
+		
 		return;
 	}
 	for (size_t i = 0; i < Ebins.size(); ++i){
@@ -50,14 +51,16 @@ void ParticleSplittingModule::process(Candidate *c) const {
 			// previous energy is in energy bin [i-1, i]
 			if(currE < Ebins[i]){
 				//assuming that dE greater than 0, prevE and E in same energy bin -> no splitting
+				//std::cout<< " current and previous in same energy bin " << std::endl;
 				return;
 			}
-
+			//std::cout << "previous: " << prevE/GeV << " current: " << currE/GeV << std::endl;
 			// current energy is in energy bin [i,i+1] or higher -> particle splitting for each crossing
 			for (size_t j = i; j < Ebins.size(); ++j ){
 
 				// adapted from Acceleration Module:
 				c->updateWeight(1. / n_split); // * 1/n_split
+				//std::cout<< " splitting with new weight: "  << c->getWeight() << std::endl;
 
 				for (int i = 1; i < n_split; i++) {
 				
@@ -65,6 +68,7 @@ void ParticleSplittingModule::process(Candidate *c) const {
 					new_candidate->parent = c;
 					uint64_t snr = Candidate::getNextSerialNumber();
 					new_candidate->setSerialNumber(snr);
+					new_candidate->previous.setEnergy(currE); // so that new candidate is not split again in next step!
 					c->addSecondary(new_candidate);
 					Candidate::setNextSerialNumber(snr + 1);
 					//std::cout<< "new serial number" << snr << std::endl;
@@ -73,10 +77,12 @@ void ParticleSplittingModule::process(Candidate *c) const {
 
 				if (j < Ebins.size()-1 && currE < Ebins[j+1]){
 					// candidate is in energy bin [j, j+1] -> no further splitting
+					//std::cout<< " last bin reached, no splitting " << std::endl;
 					return;
 				}
 			}
 
+			//std::cout<< " return after loop " << std::endl;
 			return;
 
 		}
@@ -94,16 +100,18 @@ void ParticleSplittingModule::setEnergyBins(double Emin, double Emax, double n_b
 	}
 
 	double dE = (Emax-Emin)/n_bins;
+	//std::cout << " energy bins: " << std::endl;
 	
 	for (size_t i = 0; i < n_bins; ++i) {
 		if (log == true) {
 			Ebins.push_back(Emin * pow(Emax / Emin, i / (n_bins - 1.0)));
+			//std::cout << Emin * pow(Emax / Emin, i / (n_bins - 1.0))/GeV << std::endl;
 		} else {
 			Ebins.push_back(Emin + i * dE);
+			//std::cout << (Emin + i * dE)/GeV << std::endl;
 		}
 	}
 
-	std::cout << Ebins[0] << Ebins[n_bins-1] << std::endl;
 }
 
 void ParticleSplittingModule::setNsplit(int n) {
