@@ -20,9 +20,9 @@ ParticleSplittingModule::ParticleSplittingModule(int n_split, double Emin, doubl
 ParticleSplittingModule::ParticleSplittingModule(int SpectralIndex, double Emin, int factor)  {
 	// for use with Diffusive Shock Acceleration
 
-	if (SpectralIndex < 0){
+	if (SpectralIndex <= 0){
 		throw std::runtime_error(
-				"ParticleSplitting: spectralIndex < 0 !");
+				"ParticleSplitting: spectralIndex <= 0 !");
 	}
 
 	double Emax = Emin*pow(10, factor); 
@@ -69,6 +69,7 @@ void ParticleSplittingModule::process(Candidate *c) const {
 					uint64_t snr = Candidate::getNextSerialNumber();
 					new_candidate->setSerialNumber(snr);
 					new_candidate->previous.setEnergy(currE); // so that new candidate is not split again in next step!
+					//InteractionTag is PRIM, physically no new particles are created
 					c->addSecondary(new_candidate);
 					Candidate::setNextSerialNumber(snr + 1);
 					//std::cout<< "new serial number" << snr << std::endl;
