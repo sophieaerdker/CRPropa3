@@ -390,6 +390,7 @@ add_library(crpropa SHARED
   src/module/Acceleration.cpp
   src/module/Boundary.cpp
   src/module/BreakCondition.cpp
+  src/module/CandidateSplitting.cpp
   src/module/DiffusionSDE.cpp
   src/module/EMCascade.cpp
   src/module/EMDoublePairProduction.cpp
@@ -404,7 +405,6 @@ add_library(crpropa SHARED
   src/module/Output.cpp
   src/module/OutputShell.cpp
   src/module/ParticleCollector.cpp
-  src/module/ParticleSplitting.cpp
   src/module/PhotoDisintegration.cpp
   src/module/PhotoPionProduction.cpp
   src/module/PhotonEleCa.cpp

@@ -552,7 +552,6 @@ using namespace crpropa;   // for usage of namespace in header files, necessary
 %include "crpropa/module/PhotonOutput1D.h"
 %include "crpropa/module/NuclearDecay.h"
 %include "crpropa/module/ElectronPairProduction.h"
-%include "crpropa/module/ParticleSplitting.h"
 %include "crpropa/module/PhotoPionProduction.h"
 %include "crpropa/module/PhotoDisintegration.h"
 %include "crpropa/module/ElasticScattering.h"
@@ -564,6 +563,7 @@ using namespace crpropa;   // for usage of namespace in header files, necessary
 %include "crpropa/module/EMInverseComptonScattering.h"
 %include "crpropa/module/SynchrotronRadiation.h"
 %include "crpropa/module/AdiabaticCooling.h"
+%include "crpropa/module/CandidateSplitting.h"
 
 %template(IntSet) std::set<int>;
 %include "crpropa/module/Tools.h"
