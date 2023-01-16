@@ -149,7 +149,12 @@ void DiffusionSDE::process(Candidate *candidate) const {
 		newStep = clip(newStep, minStep, maxStep);
 	  	candidate->setNextStep(newStep);
 	  	return;
+
 	}
+
+	// Adjust time step to DiffusionCoefficient, Advection and Shockwidth:
+
+	
 
     // Choose a random perpendicular vector as the Normal-vector.
     // Prevent 'nan's in the NVec-vector in the case of <TVec, NVec> = 0.
