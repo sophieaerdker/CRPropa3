@@ -43,6 +43,8 @@ private:
 	    double epsilon; // ratio of parallel and perpendicular diffusion coefficient D_par = epsilon*D_perp
 	    double alpha; // power law index of the energy dependent diffusion coefficient: D\propto E^alpha
 	    double scale; // scaling factor for the diffusion coefficient D = scale*D_0
+		double width; //used shock width, for estimation of time step in diffusive shock acceleration
+		double k0; // scaling the diffusion coefficient instead of scaling factor
 
 public:
 	/** Constructor
@@ -75,6 +77,8 @@ public:
 	void setEpsilon(double kappa);
 	void setAlpha(double alpha);
 	void setScale(double Scale);
+	void setShockWidth(double width);
+	void setk0(double k0);
 	void setMagneticField(ref_ptr<crpropa::MagneticField> magneticField);
 	void setAdvectionField(ref_ptr<crpropa::AdvectionField> advectionField);
 

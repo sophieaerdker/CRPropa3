@@ -29,6 +29,8 @@ DiffusionSDE::DiffusionSDE(ref_ptr<MagneticField> magneticField, double toleranc
   	setEpsilon(epsilon);
   	setScale(1.);
   	setAlpha(1./3.);
+	setShockWidth(0.);
+	setk0(0.);
 	}
 
 DiffusionSDE::DiffusionSDE(ref_ptr<MagneticField> magneticField, ref_ptr<AdvectionField> advectionField, double tolerance, double minStep, double maxStep, double epsilon) :
@@ -42,6 +44,8 @@ DiffusionSDE::DiffusionSDE(ref_ptr<MagneticField> magneticField, ref_ptr<Advecti
 	setEpsilon(epsilon);
 	setScale(1.);
 	setAlpha(1./3.);
+	setShockWidth(0.);
+	setk0(0.);
   	}
 
 void DiffusionSDE::process(Candidate *candidate) const {
@@ -54,6 +58,44 @@ void DiffusionSDE::process(Candidate *candidate) const {
 	double h = clip(candidate->getNextStep(), minStep, maxStep) / c_light;
 	Vector3d PosIn = current.getPosition();
 	Vector3d DirIn = current.getDirection();
+
+	double z = candidate->getRedshift();
+	double rig = current.getEnergy() / current.getCharge();
+
+	// Calculate the Diffusion tensor
+	double BTensor[] = {0., 0., 0., 0., 0., 0., 0., 0., 0.};
+	calculateBTensor(rig, BTensor, PosIn, DirIn, z);
+
+	double k = 0.5 * pow(BTensor[0], 2); // to get DiffusionCoefficient FOR NOW ONLY IN 1D!!
+	double u = 0.0;
+
+	if (advectionField) {
+		Vector3d advField = getAdvectionFieldAtPosition(PosIn);
+		// use absolute value for estimate of advective step:
+		u = sqrt( advField.x*advField.x + advField.y*advField.y + advField.z*advField.z );
+	}
+	
+	// minstep, maxstep depending on diffusion, advection and shock width:
+	if (width > 0){
+		// shock width was set:
+		double min_diff = width*width/k;
+    	double max_diff = (100*width)*(100*width)/k;
+    	double max_adv = 1./4 * width/u;
+
+    	if (max_adv >= min_diff){
+        	// NECESSARY CONDITION!
+        	if (max_adv <= max_diff)
+				h = clip(max_adv, minStep/c_light, maxStep/c_light);
+        	else
+        	    h = clip(max_diff, minStep/c_light, maxStep/c_light);
+	}
+
+    	if (max_adv < min_diff){
+    	    // CONDITION NOT MET!
+			std::cout << "Diffusion may be underestimated!" << std::endl;
+    	    h = clip(max_adv, minStep/c_light, maxStep/c_light);
+		}
+	}
 
     // rectilinear propagation for neutral particles
     // If an advection field is provided the drift is also included
@@ -71,14 +113,6 @@ void DiffusionSDE::process(Candidate *candidate) const {
 		candidate->setNextStep(maxStep);
 		return;
 	}
-
-	double z = candidate->getRedshift();
-	double rig = current.getEnergy() / current.getCharge();
-
-
-    // Calculate the Diffusion tensor
-	double BTensor[] = {0., 0., 0., 0., 0., 0., 0., 0., 0.};
-	calculateBTensor(rig, BTensor, PosIn, DirIn, z);
 
 
     // Generate random numbers
@@ -152,9 +186,6 @@ void DiffusionSDE::process(Candidate *candidate) const {
 
 	}
 
-	// Adjust time step to DiffusionCoefficient, Advection and Shockwidth:
-
-	
 
     // Choose a random perpendicular vector as the Normal-vector.
     // Prevent 'nan's in the NVec-vector in the case of <TVec, NVec> = 0.
@@ -264,8 +295,11 @@ void DiffusionSDE::driftStep(const Vector3d &pos, Vector3d &linProp, double h) c
 
 void DiffusionSDE::calculateBTensor(double r, double BTen[], Vector3d pos, Vector3d dir, double z) const {
 
-    double DifCoeff = scale * 6.1e24 * pow((std::abs(r) / 4.0e9), alpha);
-	DifCoeff = scale; // overwrite for easy use in testing DSA
+	double DifCoeff = scale * 6.1e24 * pow((std::abs(r) / 4.0e9), alpha);
+	double r0 = 1*GeV/eplus; // to use woth E0 = 1GeV and protons in DSA
+	if (k0 > 0)
+    	DifCoeff = k0 * pow((std::abs(r) / r0), alpha); // overwrite for easy use in testing DSA
+	//DifCoeff = scale; 
     BTen[0] = pow( 2  * DifCoeff, 0.5);
     BTen[4] = pow(2 * epsilon * DifCoeff, 0.5);
     BTen[8] = pow(2 * epsilon * DifCoeff, 0.5);
@@ -311,12 +345,27 @@ void DiffusionSDE::setAlpha(double a) {
 	alpha = a;
 }
 
+void DiffusionSDE::setShockWidth(double w) {
+	if (w < 0)
+		throw std::runtime_error(
+				"DiffusionSDE: tried to set negatice shock width!");
+	width = w;
+}
+
 void DiffusionSDE::setScale(double s) {
 	if (s < 0)
 		throw std::runtime_error(
 				"DiffusionSDE: Scale error: Scale < 0");
 	scale = s;
 }
+
+void DiffusionSDE::setk0(double k) {
+	if (k < 0)
+		throw std::runtime_error(
+				"DiffusionSDE: Diffusion error: k0 < 0");
+	k0 = k;
+}
+
 
 void DiffusionSDE::setMagneticField(ref_ptr<MagneticField> f) {
 	magneticField = f;
