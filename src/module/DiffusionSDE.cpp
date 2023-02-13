@@ -296,7 +296,7 @@ void DiffusionSDE::driftStep(const Vector3d &pos, Vector3d &linProp, double h) c
 void DiffusionSDE::calculateBTensor(double r, double BTen[], Vector3d pos, Vector3d dir, double z) const {
 
 	double DifCoeff = scale * 6.1e24 * pow((std::abs(r) / 4.0e9), alpha);
-	double r0 = 1*GeV/eplus; // to use woth E0 = 1GeV and protons in DSA
+	double r0 = 1*GeV/eplus; // to use with E0 = 1GeV in DSA
 	if (k0 > 0)
     	DifCoeff = k0 * pow((std::abs(r) / r0), alpha); // overwrite for easy use in testing DSA
 	//DifCoeff = scale; 
