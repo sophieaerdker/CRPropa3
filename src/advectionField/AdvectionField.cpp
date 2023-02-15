@@ -234,7 +234,71 @@ std::string OneDimensionalAdvectionShock::getDescription() const {
 	return s.str();
 }
 
+//----------------------------------------------------------------
 
+ObliqueAdvectionShock::ObliqueAdvectionShock(double r_comp, double vx_up, double vy, double x_sh){
+
+	setComp(r_comp);
+	setVup(vx_up);
+	setVy(vy);
+	setShockwidth(x_sh);
+	}
+
+Vector3d ObliqueAdvectionShock::getField(const Vector3d &position) const {
+
+	double x = position.x;
+	double vx_down = vx_up/r_comp;
+
+	double a = (vx_up + vx_down)*0.5;
+	double b = (vx_up - vx_down)*0.5;
+
+	Vector3d v(0.);
+    v.x = a - b*tanh(x/x_sh);
+	v.y = vy;
+
+	return v;
+	}
+
+double ObliqueAdvectionShock::getDivergence(const Vector3d &position) const {
+
+	double x = position.x;
+	double vx_down = vx_up/r_comp;
+	// vy = const
+
+	double a = (vx_up + vx_down)*0.5;
+	double b = (vx_up - vx_down)*0.5;
+
+	return -b/x_sh*(1 - tanh(x/x_sh)*tanh(x/x_sh));
+	}
+
+void ObliqueAdvectionShock::setComp(double r) {
+	r_comp = r;
+	return;
+}
+
+void ObliqueAdvectionShock::setVup(double v) {
+	vx_up = v;
+	return;
+} 
+
+void ObliqueAdvectionShock::setVy(double v) {
+	vy = v;
+	return;
+} 
+void ObliqueAdvectionShock::setShockwidth(double w) {
+	x_sh = w;
+	return;
+}
+
+std::string ObliqueAdvectionShock::getDescription() const {
+	std::stringstream s;
+	s << "Shock width: " << x_sh / km  << " km, ";
+	s << "Vx_up: " << vx_up / km * sec << " km/s, ";
+	s << "Vy: " << vy / km * sec << " km/s, ";
+	s << "Comp: " << r_comp;
+	
+	return s.str();
+}
 
 //-----------------------------------------------------------------
 
