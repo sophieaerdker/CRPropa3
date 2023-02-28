@@ -427,7 +427,7 @@ add_library(crpropa SHARED
   src/magneticField/PT11Field.cpp
   src/magneticField/turbulentField/GridTurbulence.cpp
   src/magneticField/turbulentField/HelicalGridTurbulence.cpp
-  src/magneticField/turbulentField/PlaneWaveTurbulence.cpps
+  src/magneticField/turbulentField/PlaneWaveTurbulence.cpp
   src/magneticField/turbulentField/SimpleGridTurbulence.cpp
   src/magneticField/TF17Field.cpp
   src/magneticField/CMZField.cpp

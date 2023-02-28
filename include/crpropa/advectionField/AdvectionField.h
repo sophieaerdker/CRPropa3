@@ -155,6 +155,38 @@ public:/** Constructor
 };
 
 /**
+ @class ObliqueAdvectionShock
+ @brief Advection field in x-y-direction with shock at x = 0 and width x_sh approximated by tanh() 
+		with variable compression ratio r_comp = vx_up/vx_down. The y component vy is not shocked 
+		and remains constant. 
+ */
+class ObliqueAdvectionShock: public AdvectionField {
+	double r_comp; //compression ratio of shock
+	double vx_up; //upstream velocity x-component
+	double vy; //constant velocity y-component
+	double x_sh; //shock width
+public:/** Constructor
+	@param r_comp //compression ratio of shock
+	@param vx_up //upstream velocity x-component
+	@param vy //constant velocity y-component
+	@param x_sh //shock width
+*/
+	ObliqueAdvectionShock(double r_comp, double vx_up, double vy, double x_sh);
+	Vector3d getField(const Vector3d &position) const;
+	double getDivergence(const Vector3d &position) const;
+
+	void setComp(double r_comp);
+	void setVup(double vx_up);
+	void setVy(double vy);
+	void setShockwidth(double x_sh);
+
+
+	std::string getDescription() const;
+};
+
+/**
+
+/**
  @class SphericalAdvectionShock
  @brief Spherical advection with a constant velocity for r<r_0
 	at the the shock the velocity drops to v_0/4. followed by
