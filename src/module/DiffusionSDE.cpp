@@ -78,6 +78,7 @@ void DiffusionSDE::process(Candidate *candidate) const {
 	// minstep, maxstep depending on diffusion, advection and shock width:
 	if (width > 0){
 		// shock width was set:
+		
 		double min_diff = width*width/k;
     	double max_diff = (100*width)*(100*width)/k;
     	double max_adv = 1./4 * width/u;
