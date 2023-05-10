@@ -236,6 +236,95 @@ std::string OneDimensionalAdvectionShock::getDescription() const {
 
 //----------------------------------------------------------------
 
+OneDimensionalSphericalShock::OneDimensionalSphericalShock(double r_sh, double v_up, double q, double l_sh, bool cool_ups){
+
+	setComp(q);
+	setVup(v_up);
+	setShockwidth(l_sh);
+	setShockRadius(r_sh);
+	setCooling(cool_ups);
+	}
+
+Vector3d OneDimensionalSphericalShock::getField(const Vector3d &position) const {
+
+	double r = position.getR();
+	Vector3d e_r = position.getUnitVector();
+
+	double v_down = v_up/r_comp;
+	double a = (v_up + v_down)*0.5;
+	double b = (v_up - v_down)*0.5;
+
+	double v;
+	if (cool_ups == true){
+	
+		if (r <= r_sh)
+    		v = a - b*tanh((r-r_sh)/l_sh);
+		else
+			v = (a - b*tanh((r-r_sh)/l_sh)) * (r_sh/r)*(r_sh/r);
+
+	}
+	else
+		v = (a - b*tanh((r-r_sh)/l_sh)) * (r_sh/r)*(r_sh/r);
+
+	return v * e_r;
+	}
+
+double OneDimensionalSphericalShock::getDivergence(const Vector3d &position) const {
+
+	double r = position.getR();
+	
+	double v_down = v_up/r_comp;
+
+	double a = (v_up + v_down)*0.5;
+	double b = (v_up - v_down)*0.5;
+
+	if (cool_ups == true){
+		if (r <= r_sh)
+			return 2*a/r - 2*b/r * tanh((r-r_sh)/l_sh) - b/l_sh * (1 - tanh((r-r_sh)/l_sh)*tanh((r-r_sh)/l_sh));
+		else
+			return -(r_sh/r)*(r_sh/r) * b/l_sh * (1 - tanh((r-r_sh)/l_sh)*tanh((r-r_sh)/l_sh));
+	}
+	else 
+		return -(r_sh/r)*(r_sh/r) * b/l_sh * (1 - tanh((r-r_sh)/l_sh)*tanh((r-r_sh)/l_sh));
+
+}
+
+void OneDimensionalSphericalShock::setComp(double r) {
+	r_comp = r;
+	return;
+}
+
+void OneDimensionalSphericalShock::setVup(double v) {
+	v_up = v;
+	return;
+}
+void OneDimensionalSphericalShock::setShockwidth(double w) {
+	l_sh = w;
+	return;
+}
+
+void OneDimensionalSphericalShock::setShockRadius(double r) {
+	r_sh = r;
+	return;
+}
+
+void OneDimensionalSphericalShock::setCooling(bool c) {
+	cool_ups = c;
+	return;
+}
+
+std::string OneDimensionalSphericalShock::getDescription() const {
+	std::stringstream s;
+	s << "Shock width: " << l_sh / km  << " km, ";
+	s << "Shock radius: " << r_sh / km  << " km, ";
+	s << "Vup: " << v_up / km * sec << " km/s, ";
+	s << "Comp: " << r_comp;
+
+	return s.str();
+}
+
+//----------------------------------------------------------------
+
 ObliqueAdvectionShock::ObliqueAdvectionShock(double r_comp, double vx_up, double vy, double x_sh){
 
 	setComp(r_comp);

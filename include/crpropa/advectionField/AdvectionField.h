@@ -155,6 +155,37 @@ public:/** Constructor
 };
 
 /**
+ @class 1DSphericalnShock
+ @brief Advection field in r-direction with shock at r_sh and width l_sh approximated by tanh() 
+		with variable compression ratio r_comp = v_up/v_down
+ */
+class OneDimensionalSphericalShock: public AdvectionField {
+	double r_comp; //compression ratio of shock
+	double v_up; //upstream velocity 
+	double l_sh; //shock width
+	double r_sh; //shock radius
+	bool cool_ups; //with or without Upstream cooling
+public:/** Constructor
+	@param r_comp //compression ratio of shock
+	@param v_up //upstream velocity 
+	@param l_sh //shock width
+	@param r_sh //shock radius
+	@param cool_ups // upstream cooling
+*/
+	OneDimensionalSphericalShock(double r_sh, double v_up, double q, double l_sh, bool cool_ups);
+	Vector3d getField(const Vector3d &position) const;
+	double getDivergence(const Vector3d &position) const;
+
+	void setComp(double q);
+	void setVup(double v_up);
+	void setShockwidth(double l_sh);
+	void setShockRadius(double r_sh);
+	void setCooling(bool cool_ups);
+
+	std::string getDescription() const;
+};
+
+/**
  @class ObliqueAdvectionShock
  @brief Advection field in x-y-direction with shock at x = 0 and width x_sh approximated by tanh() 
 		with variable compression ratio r_comp = vx_up/vx_down. The y component vy is not shocked 
@@ -165,11 +196,13 @@ class ObliqueAdvectionShock: public AdvectionField {
 	double vx_up; //upstream velocity x-component
 	double vy; //constant velocity y-component
 	double x_sh; //shock width
+	
 public:/** Constructor
 	@param r_comp //compression ratio of shock
 	@param vx_up //upstream velocity x-component
 	@param vy //constant velocity y-component
 	@param x_sh //shock width
+	
 */
 	ObliqueAdvectionShock(double r_comp, double vx_up, double vy, double x_sh);
 	Vector3d getField(const Vector3d &position) const;
