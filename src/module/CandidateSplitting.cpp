@@ -7,15 +7,17 @@ CandidateSplitting::CandidateSplitting() {
 	setNsplit(0);
 }
 
-CandidateSplitting::CandidateSplitting(int n_split, double Emin, double Emax, double n_bins) {
+CandidateSplitting::CandidateSplitting(int n_split, double Emin, double Emax, double n_bins, double minWeight) {
 	// linear energy bins:
 	setNsplit(n_split);
 	setEnergyBins(Emin, Emax, n_bins, false);
+	setMinimalWeight(minWeight);
 }
 
-CandidateSplitting::CandidateSplitting(int n_split, double Emin, double Emax, double n_bins, bool log) {
+CandidateSplitting::CandidateSplitting(int n_split, double Emin, double Emax,  double n_bins, double minWeight, bool log) {
 	setNsplit(n_split);
 	setEnergyBins(Emin, Emax, n_bins, log);
+	setMinimalWeight(minWeight);
 }
 
 CandidateSplitting::CandidateSplitting(int SpectralIndex, double Emin, int factor)  {
@@ -31,6 +33,7 @@ CandidateSplitting::CandidateSplitting(int SpectralIndex, double Emin, int facto
 	setEnergyBins(Emin, Emax, n_bins, true);
 	// to compensate for loss of particles per energy bin:
 	setNsplit((int) pow(10, SpectralIndex-1)); 
+	setMinimalWeight(1./factor);
 
 }
 
@@ -40,10 +43,12 @@ void CandidateSplitting::process(Candidate *c) const {
 	double currE = c->current.getEnergy(); 
 	double prevE = c->previous.getEnergy();
 
-	if (currE < Ebins[0] || n_split == 0){
+	if (c->getWeight() < minWeight)
+		return;
+
+	if (currE < Ebins[0] || n_split == 0 ){
 		// current energy is smaller than first bin -> no splitting
 		// or, number of splits = 0
-		
 		return;
 	}
 	for (size_t i = 0; i < Ebins.size(); ++i){
@@ -123,6 +128,11 @@ const std::vector<double>& CandidateSplitting::getEnergyBins() const {
 void CandidateSplitting::setNsplit(int n) {
 
 	n_split = n;
+}
+
+void CandidateSplitting::setMinimalWeight(double w) {
+
+	minWeight = w;
 }
 
 int CandidateSplitting::getNsplit() const {
