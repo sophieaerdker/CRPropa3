@@ -45,6 +45,7 @@ private:
 	    double scale; // scaling factor for the diffusion coefficient D = scale*D_0
 		double width; //used shock width, for estimation of time step in diffusive shock acceleration
 		double k0; // scaling the diffusion coefficient instead of scaling factor
+		double mu; // Levy parameter for superdiffusion
 
 public:
 	/** Constructor
@@ -62,6 +63,7 @@ public:
 	 @param minStep			minStep/c_light is the minimum integration time step
 	 @param maxStep			maxStep/c_light is the maximum integration time step
 	 @param epsilon			Ratio of parallel and perpendicular diffusion coefficient D_par = epsilon*D_perp
+	 @param mu				Levy parameter, for Gaussian diffusion mu = 2, change for superdiffusion
 	 */
 	DiffusionSDE(ref_ptr<crpropa::MagneticField> magneticField, ref_ptr<crpropa::AdvectionField> advectionField, double tolerance = 1e-4, double minStep = 10 * pc, double maxStep = 1 * kpc, double epsilon = 0.1);
 
@@ -78,6 +80,7 @@ public:
 	void setAlpha(double alpha);
 	void setScale(double Scale);
 	void setShockWidth(double width);
+	void setLevyParameter(double m);
 	void setk0(double k0);
 	void setMagneticField(ref_ptr<crpropa::MagneticField> magneticField);
 	void setAdvectionField(ref_ptr<crpropa::AdvectionField> advectionField);
@@ -88,6 +91,7 @@ public:
 	double getEpsilon() const;
 	double getAlpha() const;
 	double getScale() const;
+	double getLevyParameter() const;
 	std::string getDescription() const;
   
   ref_ptr<MagneticField> getMagneticField() const;

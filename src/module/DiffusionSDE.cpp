@@ -30,6 +30,7 @@ DiffusionSDE::DiffusionSDE(ref_ptr<MagneticField> magneticField, double toleranc
   	setScale(1.);
   	setAlpha(1./3.);
 	setShockWidth(0.);
+	setLevyParameter(2.); // for Gaussian
 	setk0(0.);
 	}
 
@@ -45,6 +46,7 @@ DiffusionSDE::DiffusionSDE(ref_ptr<MagneticField> magneticField, ref_ptr<Advecti
 	setScale(1.);
 	setAlpha(1./3.);
 	setShockWidth(0.);
+	setLevyParameter(2.);
 	setk0(0.);
   	}
 
@@ -66,23 +68,26 @@ void DiffusionSDE::process(Candidate *candidate) const {
 	double BTensor[] = {0., 0., 0., 0., 0., 0., 0., 0., 0.};
 	calculateBTensor(rig, BTensor, PosIn, DirIn, z);
 
-	double k = 0.5 * pow(BTensor[0], 2); // to get DiffusionCoefficient FOR NOW ONLY IN 1D!!
-	double u = 0.0;
+	// FOR ADAPTIVE STEP IF SHOCK WIDTH IS SET: 
+	// FOR GAUSSIAN DIFFUSION ONLY
 
-	if (advectionField) {
-		Vector3d advField = getAdvectionFieldAtPosition(PosIn);
-		// use absolute value for estimate of advective step:
-		u = sqrt( advField.x*advField.x + advField.y*advField.y + advField.z*advField.z );
-	}
-	
-	// minstep, maxstep depending on diffusion, advection and shock width:
 	if (width > 0){
 		// shock width was set:
-		
-		double min_diff = width*width/k;
-    	double max_diff = (100*width)*(100*width)/k;
-    	double max_adv = 1./4 * width/u;
+		double kappa = 0.5 * pow(BTensor[0], mu); 
+		double eps = 0.5 * pow(BTensor[4], mu)/kappa;
 
+		double u = 0.0;
+		if (advectionField) {
+			Vector3d advField = getAdvectionFieldAtPosition(PosIn);
+			u = sqrt( advField.x*advField.x + advField.y*advField.y + advField.z*advField.z );
+		}
+		double min_diff = width*width/((1+2*eps)*kappa); //minimal time step from diffusive constraint
+    	double max_diff = 100*100 * min_diff;            //(100*width)*(100*width)/k; // maximal time step -> dx_diff < 100Lsh
+		double max_adv = 0.0;
+		if (u > 0){
+			max_adv = 1./4 * width/u;
+		}
+    	
     	if (max_adv >= min_diff){
         	// NECESSARY CONDITION!
         	if (max_adv <= max_diff)
@@ -93,7 +98,7 @@ void DiffusionSDE::process(Candidate *candidate) const {
 
     	if (max_adv < min_diff){
     	    // CONDITION NOT MET!
-			std::cout << "Diffusion may be underestimated!" << std::endl;
+			//std::cout << "Diffusion may be underestimated!" << std::endl;
     	    h = clip(max_adv, minStep/c_light, maxStep/c_light);
 		}
 	}
@@ -118,8 +123,9 @@ void DiffusionSDE::process(Candidate *candidate) const {
 
     // Generate random numbers
 	double eta[] = {0., 0., 0.};
+	// mu = 2 for Gaussian
 	for(size_t i=0; i < 3; i++) {
-	  	eta[i] =  Random::instance().randNorm();
+	  	eta[i] =  Random::instance().levyFlight(mu);
 	}
 
 	double TStep = BTensor[0] * eta[0];
@@ -133,7 +139,7 @@ void DiffusionSDE::process(Candidate *candidate) const {
 	Vector3d DirOut = Vector3d(0.);
 
 
-	double propTime = TStep * sqrt(h) / c_light;
+	double propTime = TStep * pow(h, 1./mu) / c_light;
 	size_t counter = 0;
 	double r=42.; //arbitrary number larger than one
 
@@ -151,7 +157,7 @@ void DiffusionSDE::process(Candidate *candidate) const {
 
 
 	size_t stepNumber = pow(2, counter-1);
-	double allowedTime = TStep * sqrt(h) / c_light / stepNumber;
+	double allowedTime = TStep * pow(h, 1./mu) / c_light / stepNumber;
 	Vector3d Start = PosIn;
 	Vector3d PosOut = Vector3d(0.);
 	Vector3d PosErr = Vector3d(0.);
@@ -206,7 +212,7 @@ void DiffusionSDE::process(Candidate *candidate) const {
 	}
 
     // Integration of the SDE with a Mayorama-Euler-method
-	Vector3d PO = PosOut + LinProp + (NVec * NStep + BVec * BStep) * sqrt(h) ;
+	Vector3d PO = PosOut + LinProp + (NVec * NStep + BVec * BStep) * pow(h, 1./mu) ;
 
     // Throw error message if something went wrong with propagation.
     // Deactivate candidate.
@@ -301,9 +307,9 @@ void DiffusionSDE::calculateBTensor(double r, double BTen[], Vector3d pos, Vecto
 	if (k0 > 0)
     	DifCoeff = k0 * pow((std::abs(r) / r0), alpha); // overwrite for easy use in testing DSA
 	//DifCoeff = scale; 
-    BTen[0] = pow( 2  * DifCoeff, 0.5);
-    BTen[4] = pow(2 * epsilon * DifCoeff, 0.5);
-    BTen[8] = pow(2 * epsilon * DifCoeff, 0.5);
+    BTen[0] = pow(2 * DifCoeff, 1./mu);
+    BTen[4] = pow(2 * epsilon * DifCoeff, 1./mu);
+    BTen[8] = pow(2 * epsilon * DifCoeff, 1./mu);
     return;
 
 }
@@ -353,6 +359,12 @@ void DiffusionSDE::setShockWidth(double w) {
 	width = w;
 }
 
+void DiffusionSDE::setLevyParameter(double m) {
+	
+	mu = m;
+	// add warning for mu < 1!
+}
+
 void DiffusionSDE::setScale(double s) {
 	if (s < 0)
 		throw std::runtime_error(
@@ -398,6 +410,10 @@ double DiffusionSDE::getAlpha() const {
 
 double DiffusionSDE::getScale() const {
 	return scale;
+}
+
+double DiffusionSDE::getLevyParameter() const{
+	return mu;
 }
 
 ref_ptr<MagneticField> DiffusionSDE::getMagneticField() const {
