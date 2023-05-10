@@ -113,7 +113,46 @@ double Random::randNorm(const double& mean, const double& variance) {
 	double phi = 2.0 * 3.14159265358979323846264338328 * randExc();
 	return mean + r * cos(phi);
 }
+// Frederic, C code:
+//sqrt(-2.*log(1. - genrand_real3())) * cos(2.*PI*genrand_real1());
 
+// Levy Flights from GNU Library for superdiffusion
+double Random::levyFlight(double alpha){
+  
+	//double skew = 0.;
+	double t;
+	double s;
+	double v;
+
+	double u = 3.14159265358979323846264338328*(randDblExc() - 0.5);
+	double c = 1./sqrt(2);
+
+	if (alpha == 1)               /* cauchy case */
+	  {
+	    t = tan (u);
+	    return  c * t;
+	  }
+
+	do
+	  {
+	    v = -1.*log(randDblExc());
+	  }
+	while (v == 0);
+
+	if (alpha == 2)             /* gaussian case */
+	  {
+	    t = 2 * sin (u) * pow(v, 0.5);
+	    return c * t;
+	  }
+
+	/* general case */
+
+	t = sin (alpha * u) / pow (cos (u), 1 / alpha);
+	s = pow (cos ((1 - alpha) * u) / v, (1 - alpha) / alpha);
+
+	return  c * t * s;
+
+}
 double Random::randUniform(double min, double max) {
 	return min + (max - min) * rand();
 }
